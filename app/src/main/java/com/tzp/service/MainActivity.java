@@ -30,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
     ActivityResultLauncher<IntentSenderRequest> resultLauncher;
     private static final int REQUEST_ID_MULTIPLE_PERMISSIONS = 111;
     private static final int REQUEST_CHECK_SETTINGS = 11;
-    public Location mLocation;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,7 +44,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void initializations() {
 
-
     }
 
     private void body() {
@@ -57,27 +56,9 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    @SuppressLint("MissingPermission")
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        if (requestCode == REQUEST_ID_MULTIPLE_PERMISSIONS) {
-
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                createLocationRequest();
-
-            } else {
-
-                Toast.makeText(getApplicationContext(), "no permission", Toast.LENGTH_SHORT).show();
-
-            }
-
-        }
-    }
-
 
     protected void createLocationRequest() {
+
         LocationRequest locationRequest = LocationRequest.create();
         locationRequest.setInterval(10000);
         locationRequest.setFastestInterval(5000);
@@ -92,16 +73,15 @@ public class MainActivity extends AppCompatActivity {
         Task<LocationSettingsResponse> task = client.checkLocationSettings(builder.build());
 
 
-        task.addOnSuccessListener(this, new OnSuccessListener<LocationSettingsResponse>() {
-            @Override
-            public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
+        task.addOnSuccessListener(this, locationSettingsResponse -> {
 
-                if (locationSettingsResponse.getLocationSettingsStates().isGpsUsable()) {
-                    Log.d("onTask", "True: ");
-                }
+            if (locationSettingsResponse.getLocationSettingsStates().isGpsUsable()) {
+
+               if (RuntimePermission.getInstance(getApplicationContext()).checkRuntimePermission(this)){
+                   startBackgroundService();
+               }
             }
         });
-
 
         task.addOnFailureListener(this, e -> {
 
@@ -120,14 +100,47 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (resultCode==RESULT_OK){
-            Log.d("onTask", "RESULT_OK");
+
+            if (RuntimePermission.getInstance(getApplicationContext()).checkRuntimePermission(this)){
+                startBackgroundService();
+            }
+
         }else {
             Log.d("onTask", "RESULT_FAIL");
         }
     }
+
+    @SuppressLint("MissingPermission")
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == REQUEST_ID_MULTIPLE_PERMISSIONS) {
+
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                startBackgroundService();
+
+            } else {
+
+                Toast.makeText(getApplicationContext(), "no permission", Toast.LENGTH_SHORT).show();
+
+            }
+
+        }
+    }
+
+
+    private void startBackgroundService() {
+        Log.d("TAG", "startBackgroundService: ");
+    }
+
 }
