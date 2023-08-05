@@ -14,6 +14,8 @@ import androidx.activity.result.IntentSenderRequest;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
 
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.LocationRequest;
@@ -25,11 +27,15 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.tzp.service.databinding.ActivityMainBinding;
 
+import java.util.concurrent.TimeUnit;
+
 public class MainActivity extends AppCompatActivity {
     public ActivityMainBinding binding;
     ActivityResultLauncher<IntentSenderRequest> resultLauncher;
     private static final int REQUEST_ID_MULTIPLE_PERMISSIONS = 111;
     private static final int REQUEST_CHECK_SETTINGS = 11;
+
+    WorkManager workManager = WorkManager.getInstance(this);
 
 
     @Override
@@ -37,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
         initializations();
         body();
         clickEvent();
@@ -44,9 +51,22 @@ public class MainActivity extends AppCompatActivity {
 
     private void initializations() {
 
+
+        PeriodicWorkRequest workRequest = new PeriodicWorkRequest
+                .Builder(MyWorker.class,
+                10,
+                TimeUnit.SECONDS)
+                .build();
+
+        workManager.enqueue(workRequest);
+
     }
 
     private void body() {
+
+       /* Intent serviceIntent = new Intent(this, MyService.class);
+        startService(serviceIntent);
+        stopService(serviceIntent);*/
     }
 
     private void clickEvent() {
@@ -77,9 +97,9 @@ public class MainActivity extends AppCompatActivity {
 
             if (locationSettingsResponse.getLocationSettingsStates().isGpsUsable()) {
 
-               if (RuntimePermission.getInstance(getApplicationContext()).checkRuntimePermission(this)){
-                   startBackgroundService();
-               }
+                if (RuntimePermission.getInstance(getApplicationContext()).checkRuntimePermission(this)) {
+                    startBackgroundService();
+                }
             }
         });
 
@@ -101,18 +121,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (resultCode==RESULT_OK){
+        if (resultCode == RESULT_OK) {
 
-            if (RuntimePermission.getInstance(getApplicationContext()).checkRuntimePermission(this)){
+            if (RuntimePermission.getInstance(getApplicationContext()).checkRuntimePermission(this)) {
+
                 startBackgroundService();
             }
 
-        }else {
+        } else {
             Log.d("onTask", "RESULT_FAIL");
         }
     }
@@ -138,9 +158,18 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
     private void startBackgroundService() {
-        Log.d("TAG", "startBackgroundService: ");
+
+        PeriodicWorkRequest workRequest = new PeriodicWorkRequest
+                .Builder(MyWorker.class,
+                5,
+                TimeUnit.SECONDS)
+                .build();
+
+        // Enqueue the periodic work request with WorkManager
+        WorkManager.getInstance(getApplicationContext()).enqueue(workRequest);
+
+
     }
 
 }
