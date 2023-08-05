@@ -31,16 +31,20 @@ public class RuntimePermission {
     public boolean isInternetConnected(){
 
         NetworkInfo activeNetworkInfo = null;
+
         try {
+
             ConnectivityManager connectivityManager
                     = (ConnectivityManager) rContext.getSystemService(Context.CONNECTIVITY_SERVICE);
             activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+
         } catch (Exception ignored) {
+
         }
-        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+
+        return activeNetworkInfo != null && activeNetworkInfo.isAvailable();
 
     }
-
 
     public boolean checkRuntimePermission(Activity activity) {
 
@@ -66,21 +70,20 @@ public class RuntimePermission {
 
         return true;
 
-
     }
 
 
     public boolean checkStoreRuntimePermission(Activity activity) {
 
         int cameraPermission = ContextCompat.checkSelfPermission(rContext, Manifest.permission.CAMERA);
-        int storagePermision = ContextCompat.checkSelfPermission(rContext, Manifest.permission.READ_EXTERNAL_STORAGE);
+        int storagePermission = ContextCompat.checkSelfPermission(rContext, Manifest.permission.READ_EXTERNAL_STORAGE);
 
         List<String> listPermissionsNeeded = new ArrayList<>();
 
         if (cameraPermission != PackageManager.PERMISSION_GRANTED) {
             listPermissionsNeeded.add(Manifest.permission.CAMERA);
         }
-        if (storagePermision != PackageManager.PERMISSION_GRANTED) {
+        if (storagePermission != PackageManager.PERMISSION_GRANTED) {
             listPermissionsNeeded.add(Manifest.permission.READ_EXTERNAL_STORAGE);
         }
 
